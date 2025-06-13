@@ -1,4 +1,7 @@
 import React from 'react';
+import DraggableComponent from '../editor/DraggableComponent';
+import { COMPONENTS } from '../editor/CommonTypes';
+
 
 const Sidebar = () => {
   return (
@@ -6,21 +9,9 @@ const Sidebar = () => {
       <div className="p-4">
         <h2 className="text-lg font-medium text-gray-800 mb-4">Components</h2>
         <div className="space-y-4">
-          <div className="p-2 border border-gray-300 rounded-md cursor-move hover:bg-gray-50">
-            Heading
-          </div>
-          <div className="p-2 border border-gray-300 rounded-md cursor-move hover:bg-gray-50">
-            Paragraph
-          </div>
-          <div className="p-2 border border-gray-300 rounded-md cursor-move hover:bg-gray-50">
-            Button
-          </div>
-          <div className="p-2 border border-gray-300 rounded-md cursor-move hover:bg-gray-50">
-            Image
-          </div>
-          <div className="p-2 border border-gray-300 rounded-md cursor-move hover:bg-gray-50">
-            Form
-          </div>
+          {COMPONENTS.map((component, index) => (
+            <DraggableComponent key={index} component={component} />
+          ))}
         </div>
       </div>
     </aside>
