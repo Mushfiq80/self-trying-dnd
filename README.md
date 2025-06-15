@@ -1,249 +1,244 @@
-# Documentation: Drag-and-Drop Web Page Builder
+# Documentation: Drag-and-Drop Page Builder (`drag-drop-designer-kit`)
 
 ## Project Overview
 
-This documentation provides a comprehensive guide to the drag-and-drop web page builder project implemented in React with TailwindCSS. The project creates a visual interface where users can construct web pages by dragging and dropping pre-defined components onto a canvas.
+This project is a modular React (TypeScript) visual builder, allowing users to construct web pages by dragging UI components from a sidebar onto a live canvas. The architecture and approach are inspired by advanced tools like [shuffle.dev/editor](https://shuffle.dev/editor). This documentation provides an in-depth guide for contributors, including technical stack, folder structure, drag-and-drop flow, SVG diagrams (see `/docs/images/`), and practical extension examples.
+
+---
 
 ## Technical Stack
 
-- **Frontend Framework**: React
-- **Build Tool**: Vite
-- **Styling**: TailwindCSS
-- **Drag and Drop**: react-dnd + react-dnd-html5-backend
-- **Unique IDs**: uuid
+- **Frontend Framework:** React
+- **Build Tool:** Vite
+- **Styling:** TailwindCSS
+- **Drag and Drop:** react-dnd + react-dnd-html5-backend
+- **Unique IDs:** uuid
 
-## Folder Structure
+---
+
+## Complete Folder Structure
 
 ```
-web-builder/
-├── node_modules/
+drag-drop-designer-kit/
 ├── public/
+│   └── ... (icons, images, static assets)
 ├── src/
+│   ├── App.tsx                     # App root
+│   ├── main.tsx                    # Main entry point
+│   ├── index.css                   # Tailwind & global styles
 │   ├── components/
-│   │   ├── editor/
-│   │   │   ├── Canvas.jsx            # Main drop target for components
-│   │   │   ├── ComponentTypes.js     # Defines available component types
-│   │   │   ├── DraggableComponent.jsx # Components that can be dragged from sidebar
-│   │   │   ├── DroppedComponent.jsx  # Renders components once placed on canvas
-│   │   │   └── EditorContext.jsx     # State management for the canvas
-│   │   └── layout/
-│   │       ├── AppLayout.jsx         # Overall application layout
-│   │       ├── Header.jsx            # Top navigation bar
-│   │       └── Sidebar.jsx           # Component selection panel
-│   ├── App.jsx                       # Main application component
-│   ├── index.css                     # Global styles (Tailwind directives)
-│   └── main.jsx                      # Application entry point
-├── .gitignore
+│   │   ├── builder/
+│   │   │   ├── Canvas.tsx                # Main drop area
+│   │   │   ├── ComponentEditor.tsx       # Edit dropped components
+│   │   │   ├── ComponentLibrary.tsx      # Sidebar block list
+│   │   │   ├── SortableComponent.tsx     # Drag-sort logic
+│   │   │   ├── WebsiteBuilder.tsx        # Builder page controller
+│   │   │   └── components/
+│   │   │       ├── ButtonBlock.tsx           # Example: Button block implementation
+│   │   │       ├── CardBlock.tsx             # Example: Card block implementation
+│   │   │       └── ... (more blocks)
+│   │   └── ui/
+│   │       ├── accordion.tsx
+│   │       ├── alert.tsx
+│   │       ├── button.tsx
+│   │       ├── card.tsx
+│   │       └── ... (core UI units)
+│   ├── hooks/
+│   │   ├── useBuilderState.ts          # Canvas state logic
+│   │   ├── useDragDrop.ts              # Drag/Drop helpers
+│   │   └── ...
+│   ├── lib/
+│   ├── pages/
+│   │   └── index.tsx                   # Entry route/page
+│   ├── types/
+│   │   ├── builder.ts                  # Types for blocks, canvas state
+│   │   └── ...
+│   ├── utils/
+│   │   ├── id.ts                       # Unique ID generator
+│   │   └── ...
+│   └── vite-env.d.ts
+├── components.json                     # List/metadata of components
+├── docs/
+│   └── images/
+│       ├── architecture-overview.svg
+│       └── drag-drop-flow.svg
+├── README.md
+├── tailwind.config.ts
+├── postcss.config.js
+├── tsconfig.json
+├── tsconfig.app.json
+├── tsconfig.node.json
+├── vite.config.ts
 ├── index.html
-├── package.json
-├── tailwind.config.js                # Tailwind configuration
-└── vite.config.js                    # Vite configuration
+├── bun.lockb / package-lock.json
 ```
 
-## Key Packages
+---
 
-- **react**: UI library for building the interface
-- **react-dnd**: Library for drag-and-drop functionality
-- **react-dnd-html5-backend**: HTML5 backend for react-dnd
-- **uuid**: For generating unique IDs for components
-- **tailwindcss**: Utility-first CSS framework
+## Core Architecture & Visuals
 
-## Core Functionality Workflow
+### 1. High-Level Architecture
 
-### 1. Drag and Drop Architecture
+![Architecture Overview](docs/images/architecture-overview.svg)
 
-![Drag and Drop Architecture](docs/images/drag-and-drop-architecture.svg)
+- **ComponentLibrary** (Sidebar): Lists all available UI blocks to drag.
+- **Canvas**: The main drop area where blocks are placed, sorted, and rearranged.
+- **ComponentEditor**: The panel for editing the properties of a selected block.
 
-The drag and drop system is built on react-dnd, which implements the HTML5 Drag and Drop API. The workflow consists of:
+---
 
-1. **DndProvider**: Wraps the entire application in `App.jsx` and provides the HTML5Backend
-2. **Draggable Items**: Components in the sidebar that users can drag
-3. **Drop Target**: The canvas where components can be dropped
-4. **State Management**: Context API to track what's on the canvas
+### 2. Drag-and-Drop Flow
 
-### 2. Component Dragging Process
+![Drag-and-Drop Flow](docs/images/drag-drop-flow.svg)
 
-When a user drags a component from the sidebar:
+- **Sidebar** (ComponentLibrary): User picks and drags a block.
+- **Canvas**: Receives block, updates state, renders it live.
+- **ComponentEditor**: When a block is selected, its properties can be edited here.
 
-1. The `DraggableComponent` in the sidebar uses `useDrag` hook to make it draggable
-2. It provides metadata about the component (type, properties) as part of the drag payload
-3. During dragging, visual feedback is shown (opacity change)
+---
 
-```jsx
-// From DraggableComponent.jsx
-const [{ isDragging }, drag] = useDrag(() => ({
-  type: ItemTypes.COMPONENT, 
-  item: { type: component.type, ...component.properties },
-  collect: (monitor) => ({
-    isDragging: !!monitor.isDragging(),
-  }),
-}));
+## Step-by-Step Example: Adding and Editing a Button Block
+
+### 1. Sidebar: Add Button to Canvas
+
+**File**: `src/components/builder/ComponentLibrary.tsx`
+
+```tsx
+blocks.map(block => (
+  <div
+    key={block.type}
+    draggable
+    onDragStart={e => onDragStart(e, block)}
+    className="mb-2 p-2 rounded hover:bg-violet-100"
+  >
+    <span>{block.icon}</span> {block.label}
+  </div>
+));
 ```
 
-### 3. Component Dropping Process
+### 2. Canvas: Receive Drop
 
-When the user drops a component on the canvas:
+**File**: `src/components/builder/Canvas.tsx`
 
-1. The `Canvas` component uses `useDrop` hook to accept dropped items
-2. It calculates the drop position relative to the canvas
-3. It calls `addComponent` from the EditorContext to update state
-4. The new component is rendered at the specified position
-
-```jsx
-// From Canvas.jsx
-const [{ isOver }, drop] = useDrop(() => ({
-  accept: ItemTypes.COMPONENT,
-  drop: (item, monitor) => {
-    const offset = monitor.getClientOffset();
-    const canvasRect = document.getElementById('canvas-container').getBoundingClientRect();
-    const position = {
-      x: offset.x - canvasRect.left,
-      y: offset.y - canvasRect.top,
-    };
-    addComponent(item, position);
-  },
-  collect: (monitor) => ({
-    isOver: !!monitor.isOver(),
-  }),
-}));
-```
-
-### 4. State Management Flow
-
-The application uses React's Context API for state management:
-
-1. `EditorContext` provides state and operations for components on the canvas
-2. Components are stored as an array of objects, each with:
-   - Unique ID (generated with uuid)
-   - Component type
-   - Component properties
-   - Position coordinates
-
-```jsx
-// From EditorContext.jsx
-const addComponent = (component, position) => {
-  const newComponent = {
-    id: uuidv4(),
-    type: component.type,
-    properties: { ...component },
+```tsx
+const handleDrop = (block, position) => {
+  addBlockToCanvas({
+    id: uuid(),
+    type: block.type,
+    props: block.defaultProps,
     position,
-  };
-
-  setComponents([...components, newComponent]);
+  });
 };
+
+blocksOnCanvas.map(data => (
+  <SortableComponent key={data.id} {...data} />
+));
 ```
 
-### 5. Component Rendering
+### 3. SortableComponent: Move & Select
 
-Once dropped onto the canvas, components are rendered based on their type:
+**File**: `src/components/builder/SortableComponent.tsx`
 
-1. `DroppedComponent` receives the component data
-2. It uses a switch statement to render different HTML based on component type
-3. It positions the component absolutely using the position coordinates
-4. It adds controls for manipulating the component (like delete buttons)
-
-```jsx
-// From DroppedComponent.jsx - partial example
-const renderComponentByType = () => {
-  const { type, properties } = component;
-  
-  switch (type) {
-    case 'heading':
-      const HeadingTag = properties.level || 'h2';
-      return <HeadingTag className="text-xl font-bold">{properties.text}</HeadingTag>;
-    
-    case 'paragraph':
-      return <p className="text-base">{properties.text}</p>;
-    
-    // More cases...
-  }
-};
+```tsx
+export const SortableComponent = ({ id, type, props, position }) => (
+  <div
+    style={{ position: 'absolute', left: position.x, top: position.y }}
+    onClick={() => selectBlock(id)}
+    className="cursor-move"
+    draggable
+    onDragEnd={e => onReorder(e, id)}
+  >
+    {renderBlock(type, props)}
+  </div>
+);
 ```
 
-## Visual Representation of Component Flow
+### 4. Edit Properties
 
-![Component Flow Diagram](docs/images/component-flow-diagram.svg)
+**File**: `src/components/builder/ComponentEditor.tsx`
 
-1. **Component Definition**: Components are defined in `ComponentTypes.js`
-2. **Sidebar Display**: Components are listed in the sidebar
-3. **Drag Initiation**: User starts dragging a component
-4. **Drop on Canvas**: Component is dropped at specific coordinates
-5. **State Update**: EditorContext adds the component to state
-6. **Render Component**: DroppedComponent renders based on type
-7. **User Interaction**: User can delete or (in future) edit the component
-
-## Comparison to shuffle.dev's Editor
-
-The shuffle.dev editor (https://shuffle.dev/editor) has similar core functionalities but with additional features:
-
-1. **Component Properties Panel**: Unlike our basic implementation, shuffle.dev has a dedicated properties panel for editing component attributes
-2. **Grid System**: shuffle.dev uses a grid system for component placement, while our implementation uses absolute positioning
-3. **Responsive Preview**: shuffle.dev offers responsive design preview options
-4. **Code Export**: shuffle.dev can export to HTML/CSS/JS
-
-## Future Enhancement Areas
-
-To match the functionality of shuffle.dev's editor, consider these enhancements:
-
-1. **Component Property Editor**: Add a panel for editing component properties
-2. **Grid-Based Layout**: Replace absolute positioning with a grid system
-3. **Component Resizing**: Add ability to resize components
-4. **Component Nesting**: Enable components to be nested inside other components
-5. **Export Functionality**: Add export to HTML/CSS/React code
-6. **Responsive Design Tools**: Add tools to test and configure responsive behavior
-7. **Undo/Redo**: Implement history management for actions
-
-## Example User Flow
-
-A typical user interaction with the application goes like this:
-
-1. User browses components in the sidebar
-2. User drags a heading component onto the canvas
-3. The heading appears on the canvas at the drop location
-4. User hovers over the component to reveal the delete button
-5. User can delete the component if desired
-6. User continues building their page by adding more components
-
-## How to Extend the Project
-
-### Adding New Component Types
-
-To add a new component type:
-
-1. Add the component definition to `ComponentTypes.js`:
-
-```javascript
-{
-  type: 'newComponent',
-  label: 'New Component',
-  properties: {
-    // Define default properties here
-  },
-},
+```tsx
+const ComponentEditor = ({ selectedBlock }) => (
+  <form>
+    {Object.entries(selectedBlock.props).map(([key, value]) => (
+      <input
+        key={key}
+        value={value}
+        onChange={e => updateBlockProp(selectedBlock.id, key, e.target.value)}
+      />
+    ))}
+  </form>
+);
 ```
 
-2. Add rendering logic in `DroppedComponent.jsx`:
+---
 
-```javascript
-case 'newComponent':
-  return (
-    <div className="custom-styling">
-      {/* Render the new component */}
-    </div>
-  );
+## Data Model Example (TypeScript)
+
+**File**: `src/types/builder.ts`
+
+```typescript
+export type BlockType = "button" | "card" | "custom";
+
+export interface BlockInstance {
+  id: string;
+  type: BlockType;
+  props: Record<string, any>;
+  position: { x: number; y: number };
+}
 ```
 
-### Adding Component Editing
+---
 
-To enable component property editing:
+## How to Add a New Custom Block
 
-1. Create a new `PropertyPanel.jsx` component
-2. Add a `selectComponent` method to `EditorContext.jsx`
-3. Update `DroppedComponent.jsx` to handle selection
-4. Implement property form controls in the panel
+1. **Create the React component** in `/src/components/builder/components/MyBlock.tsx`
+2. **Add config** to `components.json`:
 
-## Conclusion
+    ```json
+    {
+      "type": "myblock",
+      "label": "My Custom Block",
+      "icon": "🧩",
+      "defaultProps": {
+        "text": "Hello",
+        "color": "blue"
+      }
+    }
+    ```
 
-This drag-and-drop web page builder provides a foundation for creating a visual page builder similar to shuffle.dev. The current implementation showcases the core drag and drop functionality, component rendering, and basic state management. By following the enhancement recommendations, you can create a more full-featured product.
+3. **Ensure render logic** in `SortableComponent.tsx` or a block renderer supports `"myblock"`
 
-The modular architecture allows for easy extension and customization, making it suitable for various web design and prototyping scenarios.
+---
+
+## Comparison with shuffle.dev
+
+| Feature                   | drag-drop-designer-kit | shuffle.dev            |
+|---------------------------|:----------------------:|:----------------------:|
+| Drag/drop blocks          | ✔️                     | ✔️                     |
+| Property editor           | ✔️                     | ✔️ (advanced)          |
+| Block sorting/nesting     | ✔️                     | ✔️                     |
+| Responsive preview        | (future)               | ✔️                     |
+| Export code               | (future)               | ✔️                     |
+| Grid layout               | (future)               | ✔️                     |
+
+---
+
+## Future Enhancements
+
+- Responsive grid system
+- Export as HTML/React
+- Undo/Redo stack
+- Block nesting & grouping
+- Advanced property panels
+
+---
+
+## Useful Links
+
+- [Builder Components](https://github.com/Mushfiq80/drag-drop-designer-kit/tree/main/src/components/builder)
+- [UI Blocks](https://github.com/Mushfiq80/drag-drop-designer-kit/tree/main/src/components/ui)
+
+---
+
+**For detailed code and all available blocks, browse the repository and the folders linked above.**
