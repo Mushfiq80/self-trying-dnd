@@ -52,7 +52,7 @@ web-builder/
 
 ### 1. Drag and Drop Architecture
 
-![Drag and Drop Architecture](https://via.placeholder.com/800x400?text=Drag+and+Drop+Architecture)
+![Drag and Drop Architecture](docs/images/drag-and-drop-architecture.svg)
 
 The drag and drop system is built on react-dnd, which implements the HTML5 Drag and Drop API. The workflow consists of:
 
@@ -162,7 +162,7 @@ const renderComponentByType = () => {
 
 ## Visual Representation of Component Flow
 
-![Component Flow Diagram](https://via.placeholder.com/900x500?text=Component+Flow+Diagram)
+![Component Flow Diagram](docs/images/component-flow-diagram.svg)
 
 1. **Component Definition**: Components are defined in `ComponentTypes.js`
 2. **Sidebar Display**: Components are listed in the sidebar
